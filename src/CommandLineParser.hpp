@@ -24,10 +24,11 @@ public:
     };
 
     void setProgramName(std::string name);
-    void addFlag(std::string flag, std::string short_flag, std::any default_value, std::string description, FlagType flagType);
+    void addFlag(const std::string& flag, const std::string& short_flag, const std::any& default_value,
+                 const std::string& description, const FlagType& flagType);
     int parse(int argc, char* argv[]);
     void displayHelp();
-    std::any getFlagValue(std::string flagName);
+    std::any getFlagValue(const std::string& flagName);
 
 private:
     std::string programName_;
