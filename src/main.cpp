@@ -22,12 +22,11 @@ int main(int argc, char**argv){
         return 1;
     }
 
+    std::vector<std::string> text;
     std::string myText;
     while (getline(inputFile, myText)) {
-        // Output the text from the file
-        std::cout << myText;
+        text.push_back(myText);
     }
-
 
     std::ofstream outputFile;
     outputFile.open(output_filename, std::ios::out | std::ios::binary);
@@ -35,9 +34,12 @@ int main(int argc, char**argv){
         std::cerr << "Error while trying to create the output file." << std::endl;
         return 1;
     }
+    
+    /*
     std::vector<uint8_t> hexVector = {0xFF, 0x00, 0xAA, 0x55};
     for(uint8_t value : hexVector)
         outputFile.put((char) value);
+    */
 
     outputFile.close();
     inputFile.close();
