@@ -1,5 +1,5 @@
 //
-// Created by mine- on 20/08/2023.
+// Created by MokonaNico 20/08/2023.
 //
 
 #ifndef GB_ASSEMBLER_LEXER_HPP

@@ -1,3 +1,7 @@
+//
+// Created by MokonaNico 18/08/2023.
+//
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -34,7 +38,7 @@ int main(int argc, char**argv){
         std::cerr << "Error while trying to create the output file." << std::endl;
         return 1;
     }
-    
+
     /*
     std::vector<uint8_t> hexVector = {0xFF, 0x00, 0xAA, 0x55};
     for(uint8_t value : hexVector)
