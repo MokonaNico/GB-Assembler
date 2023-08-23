@@ -8,35 +8,42 @@
 #include <vector>
 #include <string>
 
-class Lexer {
-public:
-    enum TokenType {
-        // Operation tokens
-        OPERATION,
-        REGISTER,
-        ADDRESS,
-        VALUE,
-        // Label tokens
-        LABEL,
-        // Command tokens
-        COMMAND,
-        ARGUMENT,
-        // Symbol tokens
-        COMA,
-        RIGHT_BRACKET,
-        LEFT_BRACKET,
-        COLON,
-        PICSOU,
-        NEWLINE,
-    };
-
-    struct Token {
-        TokenType type;
-        std::string value;
-    };
-
-    std::vector<Token> tokenizeText(std::vector<std::string> text);
+enum class TokenType {
+    // Operation tokens
+    OPERATION,
+    REGISTER,
+    ADDRESS,
+    VALUE,
+    // Label tokens
+    LABEL,
+    // Command tokens
+    COMMAND,
+    ARGUMENT,
+    // Symbol tokens
+    COMA,
+    RIGHT_BRACKET,
+    LEFT_BRACKET,
+    COLON,
+    PICSOU,
+    NEWLINE,
+    END_OF_FILE,
+    UNKNOWN
 };
 
+struct Token {
+    TokenType type;
+    std::string value;
+};
+
+class Lexer {
+public:
+    explicit Lexer(const std::string& sourceCode);
+    Token getNextToken();
+    static std::string tokenTypeToString(TokenType type);
+private:
+    const std::string& sourceCode;
+    bool skipEmptyText();
+    size_t position;
+};
 
 #endif //GB_ASSEMBLER_LEXER_HPP

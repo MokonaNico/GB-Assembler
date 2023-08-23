@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include "CommandLineParser.hpp"
+#include "Lexer.hpp"
 
 int main(int argc, char**argv){
     CommandLineParser parser;
@@ -26,11 +27,22 @@ int main(int argc, char**argv){
         return 1;
     }
 
-    std::vector<std::string> text;
-    std::string myText;
-    while (getline(inputFile, myText)) {
-        text.push_back(myText);
+    std::string sourceCode;
+    std::string line;
+    while (std::getline(inputFile, line)) {
+        sourceCode += line + "\n";
     }
+
+    Lexer lexer(sourceCode);
+
+    Token token;
+    do {
+        token = lexer.getNextToken();
+        std::cout << "Token type: " << Lexer::tokenTypeToString(token.type) << ", Value: " << token.value << std::endl;
+    } while (token.type != TokenType::END_OF_FILE);
+
+
+
 
     std::ofstream outputFile;
     outputFile.open(output_filename, std::ios::out | std::ios::binary);
