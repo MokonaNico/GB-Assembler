@@ -7,26 +7,30 @@
 
 #include <vector>
 #include <string>
+#include <unordered_set>
 
 enum class TokenType {
     // Operation tokens
     OPERATION,
-    REGISTER,
+    REGISTER16,
+    REGISTER8,
     ADDRESS,
-    VALUE,
+    CONDITION,
+    NUMBER,
     // Label tokens
     LABEL,
     // Command tokens
     COMMAND,
     ARGUMENT,
     // Symbol tokens
-    COMA,
+    COMMA,
     RIGHT_BRACKET,
     LEFT_BRACKET,
     COLON,
-    PICSOU,
-    NEWLINE,
+    MINUS,
+    PLUS,
     END_OF_FILE,
+    NEWLINE,
     UNKNOWN
 };
 
@@ -44,6 +48,19 @@ private:
     const std::string& sourceCode;
     bool skipEmptyText();
     size_t position;
+    bool lastTokenIsJump = false;
+    std::unordered_set<std::string> operationList = {"LD","LDI","LDD","PUSH","POP",
+                                                     "ADD","ADC","SUB","SBC","AND",
+                                                     "XOR","OR","CP","INC","DEC","DAA",
+                                                     "CPL","RLCA","RLA","RRCA","RRA",
+                                                     "RLC","RL","RRC","RR","SLA","SWAP",
+                                                     "SRA","SRL","BIT","SET","RES","CCF",
+                                                     "SCF","NOP","HALT","STOP","DO","EI",
+                                                     "JP","JR","CALL","RET","RETI","RST"};
+    std::unordered_set<std::string> jumpList = {"JP", "JR", "CALL", "RET"};
+    std::unordered_set<std::string> register16List = {"AF","BC","DE","HL","SP","PC"};
+    std::unordered_set<std::string> register8List = {"A","B","C","D","E","H","L"};
+    std::unordered_set<std::string> conditionList = {"NZ","Z","NC","C"};
 };
 
 #endif //GB_ASSEMBLER_LEXER_HPP
