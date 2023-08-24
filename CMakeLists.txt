@@ -9,7 +9,9 @@ add_executable(GB-Assembler src/main.cpp
         src/CommandLineParser.cpp
         src/CommandLineParser.hpp
         src/Lexer.cpp
-        src/Lexer.hpp)
+        src/Lexer.hpp
+        src/Assembler.cpp
+        src/Assembler.hpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

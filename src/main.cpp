@@ -7,14 +7,15 @@
 #include <string>
 #include "CommandLineParser.hpp"
 #include "Lexer.hpp"
+#include "Assembler.hpp"
 
 int main(int argc, char**argv){
     CommandLineParser parser;
     parser.setProgramName("GB-Assembler");
     parser.addFlag("--input", "-i", std::string("input.asm"),
-                   "The input file", CommandLineParser::FlagType::STRING);
+                   "The input file",FlagType::STRING);
     parser.addFlag("--output", "-o", std::string("output.gb"),
-                   "The output file", CommandLineParser::FlagType::STRING);
+                   "The output file",FlagType::STRING);
     if (parser.parse(argc, argv)) return 0;
 
     auto input_filename = std::any_cast<std::string>(parser.getFlagValue("--input"));
@@ -34,15 +35,21 @@ int main(int argc, char**argv){
     }
 
     Lexer lexer(sourceCode);
+    Assembler assembler;
 
     Token token;
+    std::vector<Token> tokens;
     do {
+        tokens.clear();
         token = lexer.getNextToken();
-        std::cout << "Token type: " << Lexer::tokenTypeToString(token.type) << ", Value: " << token.value << std::endl;
+        while (token.type != TokenType::NEWLINE and token.type != TokenType::END_OF_FILE) {
+            tokens.push_back(token);
+            token = lexer.getNextToken();
+        }
+
+        if (tokens.empty()) continue;
+        assembler.generateBinaryInstruction(tokens);
     } while (token.type != TokenType::END_OF_FILE);
-
-
-
 
     std::ofstream outputFile;
     outputFile.open(output_filename, std::ios::out | std::ios::binary);
