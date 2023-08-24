@@ -5,14 +5,22 @@
 #include <iostream>
 #include "Lexer.hpp"
 
+/**
+ * Constructor of the Lexer class
+ * @param sourceCode the assembly source code
+ */
 Lexer::Lexer(const std::string& sourceCode) : sourceCode(sourceCode), position(0) {}
 
+/**
+ * Parse the source code and return the current next token
+ * @return the next token
+ */
 Token Lexer::getNextToken() {
     if(skipEmptyText()){
         return {TokenType::END_OF_FILE, ""};
     }
 
-    // Else we parse the char
+    // we parse the char
     char currentChar = sourceCode[position];
     position++;
 
@@ -29,9 +37,14 @@ Token Lexer::getNextToken() {
         }
     }
 
+    // Handle the case where we have alpha char, it means that we can be in one of these token type :
+    // - Operation
+    // - Condition
+    // - Register
+    // - Label
+    // So we need to check in which case we are
     if (std::isalpha(currentChar)){
-        // Need to check if it's a label, an instruction or a register
-        // Label are easy to find because they always end with :
+        // First we get the whole word
         std::string word;
         word += currentChar;
         currentChar = sourceCode[position];
@@ -41,7 +54,9 @@ Token Lexer::getNextToken() {
             currentChar = sourceCode[position];
         }
 
+        // Then we check if the word is in some word list to find is type
         if (operationList.find(word) != operationList.end()) {
+            // Need to note that it's a jump op because we need this information for the condition token
             lastTokenIsJump = (jumpList.find(word) != jumpList.end());
             return {TokenType::OPERATION, word};
         } else if (conditionList.find(word) != conditionList.end() and lastTokenIsJump) {
@@ -51,10 +66,13 @@ Token Lexer::getNextToken() {
         } else if (register8List.find(word) != register8List.end()){
             return {TokenType::REGISTER8, word};
         } else {
+            // We say that by default, it's a label
             return {TokenType::LABEL, word};
         }
     }
 
+    // If it's a digit, then it's going to be a number token
+    // We just need to parse the digit entirely
     if (std::isdigit(currentChar)){
         std::string number;
         number += currentChar;
@@ -67,6 +85,7 @@ Token Lexer::getNextToken() {
         return {TokenType::NUMBER, number};
     }
 
+    // If it begins with a dot, it's a command token, we skip the dot and parse the command name
     if (currentChar == '.'){
         // Command
         std::string command;
@@ -79,6 +98,8 @@ Token Lexer::getNextToken() {
         return {TokenType::COMMAND, command};
     }
 
+    // If it's a $, it means that it's an address. So we skip the $ and return a token with the address
+    //  is always write with hex
     if (currentChar == '$'){
         // address
         std::string address;
@@ -91,37 +112,25 @@ Token Lexer::getNextToken() {
         return {TokenType::ADDRESS, address};
     }
 
-    if (currentChar == ','){
-        return {TokenType::COMMA, ","};
-    }
+    // Token for some special character
+    if (currentChar == ',') return {TokenType::COMMA, ","};
+    if (currentChar == ':') return {TokenType::COLON, ":"};
+    if (currentChar == '[' or currentChar == '(') return {TokenType::LEFT_BRACKET, "["};
+    if (currentChar == ']' or currentChar == ')') return {TokenType::RIGHT_BRACKET, "]"};
+    if (currentChar == '-') return {TokenType::MINUS, "-"};
+    if (currentChar == '+') return {TokenType::PLUS, "+"};
+    if (currentChar == '\n') return {TokenType::NEWLINE, ""};
 
-    if (currentChar == ':'){
-        return {TokenType::COLON, ":"};
-    }
-
-    if (currentChar == '[' or currentChar == '('){
-        return {TokenType::LEFT_BRACKET, "["};
-    }
-
-    if (currentChar == ']' or currentChar == ')'){
-        return {TokenType::RIGHT_BRACKET, "]"};
-    }
-
-    if (currentChar == '-'){
-        return {TokenType::MINUS, "-"};
-    }
-
-    if (currentChar == '+'){
-        return {TokenType::PLUS, "+"};
-    }
-
-    if (currentChar == '\n'){
-        return {TokenType::NEWLINE, ""};
-    }
-
+    // If it doesn't fall in any-case, then it's an unknown token
+    // (maybe throw an error when this token is returned)
     return {TokenType::UNKNOWN, std::string(1, currentChar)};
 }
 
+/**
+ * Return a string for the enum TokenType
+ * @param type the TokenType
+ * @return a string that represent the TokenType value
+ */
 std::string Lexer::tokenTypeToString(TokenType type) {
     switch (type) {
         case TokenType::OPERATION: return "OPERATION";
@@ -145,6 +154,10 @@ std::string Lexer::tokenTypeToString(TokenType type) {
     }
 }
 
+/**
+ * Helper method to easily skip empty text
+ * @return true if it's the end of the file, false either
+ */
 bool Lexer::skipEmptyText() {
     // Go to the next char or the end of the file
     while(position < sourceCode.length() && sourceCode[position] != '\n' && std::isspace(sourceCode[position])) {
@@ -152,10 +165,6 @@ bool Lexer::skipEmptyText() {
     }
 
     // Here we have to check if it's the case where we are at the end of the file
-    if (position >= sourceCode.length()) {
-        return true;
-    } else {
-        return false;
-    }
+    return (position >= sourceCode.length());
 }
 
