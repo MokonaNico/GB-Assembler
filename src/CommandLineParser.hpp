@@ -11,22 +11,22 @@
 #include <any> 
 #include <string>
 
+enum class FlagType {
+    INT,
+    BOOL,
+    STRING
+};
+
+struct FlagInfo {
+    std::string flag;
+    std::string short_flag;
+    std::any default_value;
+    std::string description;
+    FlagType flagType;
+};
+
 class CommandLineParser {
 public:
-    enum FlagType {
-        INT,
-        BOOL,
-        STRING
-    };
-
-    struct FlagInfo {
-        std::string flag;
-        std::string short_flag;
-        std::any default_value;
-        std::string description;
-        FlagType flagType;
-    };
-
     void setProgramName(std::string name);
     void addFlag(const std::string& flag, const std::string& short_flag, const std::any& default_value,
                  const std::string& description, const FlagType& flagType);
