@@ -55,7 +55,7 @@ private:
                                                      "CPL","RLCA","RLA","RRCA","RRA",
                                                      "RLC","RL","RRC","RR","SLA","SWAP",
                                                      "SRA","SRL","BIT","SET","RES","CCF",
-                                                     "SCF","NOP","HALT","STOP","DO","EI",
+                                                     "SCF","NOP","HALT","STOP","DI","EI",
                                                      "JP","JR","CALL","RET","RETI","RST"};
     std::unordered_set<std::string> jumpList = {"JP", "JR", "CALL", "RET"};
     std::unordered_set<std::string> register16List = {"AF","BC","DE","HL","SP","PC"};

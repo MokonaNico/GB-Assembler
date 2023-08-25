@@ -28,6 +28,13 @@ int main(int argc, char**argv){
         return 1;
     }
 
+    std::ofstream outputFile;
+    outputFile.open(output_filename, std::ios::out | std::ios::binary);
+    if (!outputFile.is_open()) {
+        std::cerr << "Error while trying to create the output file." << std::endl;
+        return 1;
+    }
+
     std::string sourceCode;
     std::string line;
     while (std::getline(inputFile, line)) {
@@ -48,21 +55,13 @@ int main(int argc, char**argv){
         }
 
         if (tokens.empty()) continue;
-        assembler.generateBinaryInstruction(tokens);
+        std::vector<uint8_t> bin = assembler.generateBinaryInstruction(tokens);
+
+        for(uint8_t value : bin){
+            outputFile.put((char) value);
+        }
+
     } while (token.type != TokenType::END_OF_FILE);
-
-    std::ofstream outputFile;
-    outputFile.open(output_filename, std::ios::out | std::ios::binary);
-    if (!outputFile.is_open()) {
-        std::cerr << "Error while trying to create the output file." << std::endl;
-        return 1;
-    }
-
-    /*
-    std::vector<uint8_t> hexVector = {0xFF, 0x00, 0xAA, 0x55};
-    for(uint8_t value : hexVector)
-        outputFile.put((char) value);
-    */
 
     outputFile.close();
     inputFile.close();
