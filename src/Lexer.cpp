@@ -73,7 +73,7 @@ Token Lexer::getNextToken() {
 
     // If it's a digit, then it's going to be a number token
     // We just need to parse the digit entirely
-    if (std::isdigit(currentChar)){
+    if (std::isdigit(currentChar) or (currentChar == '-' and std::isdigit(sourceCode[position]))){
         std::string number;
         number += currentChar;
         currentChar = sourceCode[position];

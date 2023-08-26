@@ -35,8 +35,52 @@ std::vector<uint8_t> Assembler::handlerOperation(std::vector<Token> tokens) {
     if (operation == "RLA"  and tokens.size() == 1) return {0x17};
     if (operation == "RRCA" and tokens.size() == 1) return {0x0F};
     if (operation == "RRA"  and tokens.size() == 1) return {0x1F};
-    if (prefixedOpList.find(operation) != prefixedOpList.end() and tokens.size() >= 2)
+    if (prefixedOpMap.find(operation) != prefixedOpMap.end() and tokens.size() >= 2)
         return handlerPrefixedOperation(tokens);
+
+    // Arithmetic instructions
+    // TODO : Support arithmetic instruction without register A (ADD A,B -> ADD B)
+    if (operation == "CPL" and tokens.size() == 1) return {0x2F};
+    if (operation == "CCF" and tokens.size() == 1) return {0x3F};
+    if (operation == "DAA" and tokens.size() == 1) return {0x27};
+    if (operation == "SCF" and tokens.size() == 1) return {0x37};
+
+    if (operation == "ADD" and tokens.size() >= 4) {
+        if (tokens[3].type == TokenType::REGISTER8 or tokens[3].type == TokenType::LEFT_BRACKET)
+            return handlerOperationReg(tokens, 0x80);
+        if (tokens[3].type == TokenType::REGISTER16 and tokens[1].value == "HL"){
+            uint8_t val = 0x09 + register16Bits.at(tokens[3].value);
+            return {val};
+        }
+        if (tokens[3].type == TokenType::NUMBER){
+            if (tokens[1].value == "A")  return handlerRegisterNumber(tokens, 0xC6);
+            if (tokens[1].value == "SP") return handlerRegisterNumber(tokens, 0xE8);
+        }
+    }
+    // ADC,SUB,SBC,AND,XOR,OR,CP
+    if (arithmeticOpMap.find(operation) != arithmeticOpMap.end() and tokens.size() >= 4){
+        if (tokens[3].type == TokenType::REGISTER8 or tokens[3].type == TokenType::LEFT_BRACKET)
+            return handlerOperationReg(tokens, arithmeticOpMap.at(operation));
+        if (tokens[3].type == TokenType::NUMBER)
+            return handlerRegisterNumber(tokens, arithmeticOpMap.at(operation) + 0x46);
+    }
+    // INC,DEC
+    if (arithmeticAltOpMap.find(operation) != arithmeticAltOpMap.end() and tokens.size() >= 2){
+        if (tokens[1].type == TokenType::REGISTER8 or tokens[1].type == TokenType::LEFT_BRACKET)
+            return handlerOperationRegAlt(tokens, arithmeticAltOpMap.at(operation));
+        if (tokens[1].type == TokenType::REGISTER16){
+            uint8_t val = arithmeticAlt16OpMap.at(operation) + register16Bits.at(tokens[1].value);
+            return {val};
+        }
+    }
+
+
+    // Load instructions
+
+
+
+    // Jumps/calls instructions
+
 
     throw std::runtime_error("Unknown operation.");
 }
@@ -65,15 +109,16 @@ std::vector<uint8_t> Assembler::handlerPrefixedOperation(std::vector<Token> toke
     // In the case of a number, it means that we are in BIT,RES or SET
     // So we check the second argument
     if (tokens[1].type == TokenType::REGISTER8)
-        reg = prefixedArgMap.at(tokens[1].value);
+        reg = register8Bits.at(tokens[1].value);
     else if (tokens[1].type == TokenType::LEFT_BRACKET and
+             tokens[2].type == TokenType::REGISTER16 and
              tokens[2].value == "HL" and
              tokens[3].type == TokenType::RIGHT_BRACKET )
         reg = 0x06;
     else if (tokens[1].type == TokenType::NUMBER){
         num = static_cast<uint8_t>(std::stoi(tokens[1].value)) << 3;
         if (tokens[3].type == TokenType::REGISTER8)
-            reg = prefixedArgMap.at(tokens[3].value);
+            reg = register8Bits.at(tokens[3].value);
         else if (tokens[3].type == TokenType::LEFT_BRACKET)
             reg = 0x06;
     }
@@ -82,5 +127,34 @@ std::vector<uint8_t> Assembler::handlerPrefixedOperation(std::vector<Token> toke
     // Add the value to make the final opcode
     uint8_t out = prefixedOpMap[operation] + reg + num;
     return {0xCB, out};
+}
+
+std::vector<uint8_t> Assembler::handlerOperationReg(std::vector<Token> tokens, uint8_t baseAddress) {
+    if (tokens[3].type == TokenType::REGISTER8 and tokens[1].value == "A"){
+        uint8_t val = baseAddress + register8Bits.at(tokens[3].value);
+        return {val};
+    }
+    if (tokens[3].type == TokenType::LEFT_BRACKET and tokens[1].value == "A" and tokens[4].value == "HL"){
+        uint8_t val = baseAddress + 0x06;
+        return {val};
+    }
+    throw std::runtime_error("Unknown operation.");
+}
+
+std::vector<uint8_t> Assembler::handlerRegisterNumber(std::vector<Token> tokens, uint8_t operation) {
+    auto num = static_cast<uint8_t>(std::stoi(tokens[3].value));
+    return {operation, num};
+}
+
+std::vector<uint8_t> Assembler::handlerOperationRegAlt(std::vector<Token> tokens, uint8_t baseAddress) {
+    if (tokens[1].type == TokenType::REGISTER8){
+        uint8_t val = baseAddress + register8BitsAlt.at(tokens[1].value);
+        return {val};
+    }
+    if (tokens[1].type == TokenType::LEFT_BRACKET and tokens[2].value == "HL"){
+        uint8_t val = baseAddress + 0x30;
+        return {val};
+    }
+    throw std::runtime_error("Unknown operation.");
 }
 
