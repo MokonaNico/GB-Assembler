@@ -27,6 +27,7 @@ private:
 
 
     static uint8_t getByteFromString(const std::string& number);
+    static uint8_t getUpperByteFromString(const std::string& number);
 
     static bool isOpReg8(std::vector<Token> tokens);
     static bool isOpReg16(std::vector<Token> tokens);
@@ -38,7 +39,10 @@ private:
     static bool isOpReg8Number(std::vector<Token> tokens);
     static bool isOpReg16Reg16(std::vector<Token> tokens);
     static bool isOpReg16Number(std::vector<Token> tokens);
-
+    static bool isOpBrReg16BrReg8(std::vector<Token> tokens);
+    static bool isOpBrReg16PlusBrReg8(std::vector<Token> tokens);
+    static bool isOpBrReg16MinusBrReg8(std::vector<Token> tokens);
+    static bool isOpBrReg16BrNumber(std::vector<Token> tokens);
 
     std::map<std::string, uint8_t> arithmeticOpMap = {
             {"ADD",  0x80},
@@ -98,6 +102,15 @@ private:
             {"H", 0x20},
             {"L", 0x28},
             {"A", 0x38}
+    };
+    std::map<std::string, uint8_t> register8BitsLoad = {
+            {"B", 0x06},
+            {"C", 0x0E},
+            {"D", 0x16},
+            {"E", 0x1E},
+            {"H", 0x26},
+            {"L", 0x2E},
+            {"A", 0x3E}
     };
 };
 
