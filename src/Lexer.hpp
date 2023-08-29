@@ -49,7 +49,7 @@ private:
     bool skipEmptyText();
     size_t position;
     bool lastTokenIsJump = false;
-    std::unordered_set<std::string> operationList = {"LD","LDI","LDD","PUSH","POP",
+    std::unordered_set<std::string> operationList = {"LD","LDI","LDD","LDH","PUSH","POP",
                                                      "ADD","ADC","SUB","SBC","AND",
                                                      "XOR","OR","CP","INC","DEC","DAA",
                                                      "CPL","RLCA","RLA","RRCA","RRA",

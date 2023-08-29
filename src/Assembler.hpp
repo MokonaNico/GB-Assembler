@@ -27,6 +27,8 @@ private:
 
     static uint8_t getByteFromString(const std::string& number);
     static uint8_t getUpperByteFromString(const std::string& number);
+    static uint8_t getByteFromAddressString(const std::string& address);
+    static uint8_t getUpperByteFromAddressString(const std::string& address);
 
     static bool checkOp(std::vector<Token> tokens, std::vector<TokenType> expected);
 
@@ -80,6 +82,12 @@ private:
             {"HL", 0x20},
             {"SP", 0x30}
     };
+    std::map<std::string, uint8_t> register16BitsStack = {
+            {"BC", 0x00},
+            {"DE", 0x10},
+            {"HL", 0x20},
+            {"AF", 0x30}
+    };
     std::map<std::string, uint8_t> register8BitsAlt = {
             {"B", 0x00},
             {"C", 0x08},
@@ -97,6 +105,22 @@ private:
             {"H", 0x26},
             {"L", 0x2E},
             {"A", 0x3E}
+    };
+    std::map<std::string, uint8_t> conditionBits = {
+            {"NZ", 0x00},
+            {"Z",  0x08},
+            {"NC", 0x10},
+            {"C",  0x18}
+    };
+    std::map<std::string, uint8_t> rstAddBits = {
+            {"00", 0x00},
+            {"08", 0x08},
+            {"10", 0x10},
+            {"18", 0x18},
+            {"20", 0x20},
+            {"28", 0x28},
+            {"30", 0x30},
+            {"38", 0x38}
     };
 };
 

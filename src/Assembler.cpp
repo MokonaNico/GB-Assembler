@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <sstream>
 #include "Assembler.hpp"
 
 #define CAST(var) static_cast<uint8_t>(var)
@@ -11,7 +12,7 @@
 #define OP TokenType::OPERATION
 #define R16 TokenType::REGISTER16
 #define R8 TokenType::REGISTER8
-#define AD TokenType::ADDRESS
+#define ADD TokenType::ADDRESS
 #define COND TokenType::CONDITION
 #define NUM TokenType::NUMBER
 #define LAB TokenType::LABEL
@@ -43,7 +44,7 @@ std::vector<uint8_t> Assembler::handlerOperation(std::vector<Token> tokens) {
     if (operation == "STOP" and tokens.size() == 1) return {0x10,0x00};
     if (operation == "HALT" and tokens.size() == 1) return {0x76};
     if (operation == "DI"   and tokens.size() == 1) return {0xF3};
-    if (operation == "EI"   and tokens.size() == 1) return {0xFA};
+    if (operation == "EI"   and tokens.size() == 1) return {0xFB};
     if (operation == "CCF"  and tokens.size() == 1) return {0x3F};
     if (operation == "SCF"  and tokens.size() == 1) return {0x37};
 
@@ -134,8 +135,7 @@ std::vector<uint8_t> Assembler::handlerArithmeticOperation(std::vector<Token> to
         if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and tokens[4].value == "HL")
             return {CAST(baseAddress + 0x06)};
         if (checkOp(tokens, {OP,R8,COM,NUM}))
-            return {CAST(arithmeticOpMap.at(operation) + 0x46),
-                    getByteFromString(tokens[3].value)};
+            return {CAST(arithmeticOpMap.at(operation) + 0x46), getByteFromString(tokens[3].value)};
     }
 
     // Specific case of ADD
@@ -166,11 +166,28 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
     std::string operation = tokens[0].value;
 
     if (operation == "LD"){
+        // 0x40 -> 0x7F (not 0x76)
+        if (checkOp(tokens, {OP,R8,COM,R8})){
+            uint8_t lowerBits = register8Bits.at(tokens[3].value);
+            uint8_t midBits = register8Bits.at(tokens[1].value) << 3;
+            return {CAST(0x40 + midBits + lowerBits)};
+        }
+        if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and tokens[4].value == "HL"){
+            uint8_t midBits = register8Bits.at(tokens[1].value) << 3;
+            return {CAST(0x46 + midBits)};
+        }
+        if (checkOp(tokens, {OP,LBR,R16,RBR,COM,R8}) and tokens[2].value == "HL"){
+            uint8_t lowerBits = register8Bits.at(tokens[5].value);
+            return {CAST(0x70 + lowerBits)};
+        }
+
+        // 0x01 0x11 0x21 0x31
         if (checkOp(tokens, {OP,R16,COM,NUM}))
             return {CAST(0x01 + register16Bits.at(tokens[1].value)),
                     getByteFromString(tokens[3].value),
                     getUpperByteFromString(tokens[3].value)};
 
+        // 0x02 0x12 0x22 0x32
         if (checkOp(tokens, {OP,LBR,R16,RBR,COM,R8}) and tokens[5].value == "A"){
             if (tokens[2].value == "BC") return {0x02};
             if (tokens[2].value == "DE") return {0x12};
@@ -180,21 +197,121 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
         if (checkOp(tokens, {OP,LBR,R16,MIN,RBR,COM,R8}) and tokens[2].value == "HL" and tokens[6].value == "A")
             return {0x32};
 
+        // 0x06 0x16 0x26 0x36
         if (checkOp(tokens, {OP,R8,COM,NUM}))
             return {register8BitsLoad.at(tokens[1].value), getByteFromString(tokens[3].value)};
         if (checkOp(tokens, {OP,LBR,R16,RBR,COM,NUM}))
             return {0x36, getByteFromString(tokens[5].value)};
 
+        // 0x0A 0x1A 0x2A 0x3A
         if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and tokens[1].value == "A"){
             if (tokens[4].value == "BC") return {0x0A};
             if (tokens[4].value == "DE") return {0x1A};
         }
+        if (checkOp(tokens, {OP,R8,COM,LBR,R16,PLUS,RBR}) and tokens[1].value == "A" and tokens[4].value == "HL")
+            return {0x2A};
+        if (checkOp(tokens, {OP,R8,COM,LBR,R16,MIN,RBR}) and tokens[1].value == "A" and tokens[4].value == "HL")
+            return {0x3A};
+
+        // 0x08
+        if (checkOp(tokens, {OP,LBR,ADD,RBR,COM,R16}) and tokens[5].value == "SP")
+            return {0x08,
+                    getByteFromAddressString(tokens[2].value),
+                    getUpperByteFromAddressString(tokens[2].value)};
+
+        // 0xE2 0xF2
+        if (checkOp(tokens, {OP,LBR,R8,RBR,COM,R8}) and tokens[2].value == "C" and tokens[5].value == "A")
+            return {0xE2};
+        if (checkOp(tokens, {OP,R8,COM,LBR,R8,RBR}) and tokens[1].value == "A" and tokens[4].value == "C")
+            return {0xF2};
+
+        // 0xF8
+        if (checkOp(tokens, {OP,R16,COM,R16,PLUS,NUM}) and tokens[1].value == "HL" and tokens[3].value == "SP")
+            return {0xF8, getByteFromString(tokens[5].value)};
+
+        // 0xF9
+        if (checkOp(tokens, {OP,R16,COM,R16}) and tokens[1].value == "SP" and tokens[3].value == "HL")
+            return {0xF9};
+
+        // 0xEA
+        if (checkOp(tokens, {OP,LBR,ADD,RBR,COM,R8}) and tokens[5].value == "A")
+            return {0xEA,
+                    getUpperByteFromAddressString(tokens[2].value),
+                    getByteFromAddressString(tokens[2].value)};
+
+        // 0xFA
+        if (checkOp(tokens, {OP,R8,COM,LBR,ADD,RBR}) and tokens[1].value == "A")
+            return {0xFA,
+                    getUpperByteFromAddressString(tokens[4].value),
+                    getByteFromAddressString(tokens[4].value)};
     }
+
+    if (operation == "LDH"){
+        //0xE0
+        if (checkOp(tokens, {OP,LBR,ADD,RBR,COM,R8}) and tokens[5].value == "A")
+            return {0xE0, getByteFromAddressString(tokens[2].value)};
+        //0xF0
+        if (checkOp(tokens, {OP,R8,COM,LBR,ADD,RBR}) and tokens[1].value == "A")
+            return {0xF0, getByteFromAddressString(tokens[4].value)};
+    }
+
+    if (operation == "POP" and checkOp(tokens,{OP,R16}))
+        return {CAST(0xC1 + register16BitsStack.at(tokens[1].value))};
+
+    if (operation == "PUSH" and checkOp(tokens, {OP,R16}))
+        return {CAST(0xC5 + register16BitsStack.at(tokens[1].value))};
 
     throw std::runtime_error("Unknown operation.");
 }
 
 std::vector<uint8_t> Assembler::handlerJumpOperation(std::vector<Token> tokens) {
+    std::string operation = tokens[0].value;
+    if (operation == "JR"){
+        if (checkOp(tokens, {OP,NUM}))
+            return {0x18, getByteFromString(tokens[1].value)};
+        if (checkOp(tokens, {OP,COND,COM,NUM})){
+            uint8_t num = getByteFromString(tokens[3].value);
+            return {CAST(0x20 + conditionBits.at(tokens[1].value)), num};
+        }
+    }
+
+    if (operation == "JP"){
+        if (checkOp(tokens, {OP,ADD}))
+            return {0xC3, getUpperByteFromAddressString(tokens[1].value),
+                          getByteFromAddressString(tokens[1].value)};
+        if (checkOp(tokens, {OP,COND,COM,ADD})) {
+            uint8_t up_add = getUpperByteFromAddressString(tokens[3].value);
+            uint8_t low_add = getByteFromAddressString(tokens[3].value);
+            return {CAST(0xC2 + conditionBits.at(tokens[1].value)), up_add, low_add};
+        }
+        if (checkOp(tokens, {OP, R16}))
+            return {0xE9};
+    }
+
+    if (operation == "RET"){
+        if (checkOp(tokens, {OP})) return {0xC9};
+        if (checkOp(tokens, {OP, COND}))
+            return {CAST(0xC0 + conditionBits.at(tokens[1].value))};
+    }
+
+    if (operation == "RETI" and tokens.size() == 1)
+        return {0xD9};
+
+    if (operation == "CALL"){
+        if (checkOp(tokens, {OP,ADD}))
+            return {0xCD, getUpperByteFromAddressString(tokens[1].value),
+                          getByteFromAddressString(tokens[1].value)};
+        if (checkOp(tokens, {OP,COND,COM,ADD})) {
+            uint8_t up_add = getUpperByteFromAddressString(tokens[3].value);
+            uint8_t low_add = getByteFromAddressString(tokens[3].value);
+            return {CAST(0xC4 + conditionBits.at(tokens[1].value)), up_add, low_add};
+        }
+    }
+
+    if (operation == "RST" and checkOp(tokens, {OP,ADD})){
+        return {CAST(0xC7 + rstAddBits.at(tokens[1].value))};
+    }
+
     throw std::runtime_error("Unknown operation.");
 }
 
@@ -206,6 +323,22 @@ uint8_t Assembler::getUpperByteFromString(const std::string &number) {
     return static_cast<uint8_t>(std::stoi(number) >> 8);
 }
 
+uint8_t Assembler::getByteFromAddressString(const std::string &address) {
+    unsigned int address_num;
+    std::stringstream ss;
+    ss << std::hex << address;
+    ss >> address_num;
+    return static_cast<uint8_t>(address_num);
+}
+
+uint8_t Assembler::getUpperByteFromAddressString(const std::string &address) {
+    unsigned int address_num;
+    std::stringstream ss;
+    ss << std::hex << address;
+    ss >> address_num;
+    return static_cast<uint8_t>(address_num >> 8);
+}
+
 bool Assembler::checkOp(std::vector<Token> tokens, std::vector<TokenType> expected) {
     if (tokens.size() != expected.size()) return false;
     for (int i = 0; i < tokens.size(); i++){
@@ -213,3 +346,4 @@ bool Assembler::checkOp(std::vector<Token> tokens, std::vector<TokenType> expect
     }
     return true;
 }
+
