@@ -7,6 +7,22 @@
 
 #define CAST(var) static_cast<uint8_t>(var)
 
+// Some definition to short all the checkOp call
+#define OP TokenType::OPERATION
+#define R16 TokenType::REGISTER16
+#define R8 TokenType::REGISTER8
+#define AD TokenType::ADDRESS
+#define COND TokenType::CONDITION
+#define NUM TokenType::NUMBER
+#define LAB TokenType::LABEL
+#define CMD TokenType::COMMAND
+#define ARG TokenType::ARGUMENT
+#define COM TokenType::COMMA
+#define RBR TokenType::RIGHT_BRACKET
+#define LBR TokenType::LEFT_BRACKET
+#define COL TokenType::COLON
+#define MIN TokenType::MINUS
+#define PLUS TokenType::PLUS
 
 std::vector<uint8_t> Assembler::generateBinaryInstruction(std::vector<Token> tokens) {
     // TODO : Delete this print
@@ -84,14 +100,14 @@ std::vector<uint8_t> Assembler::handlerPrefixedOperation(std::vector<Token> toke
     // We need to find if it's a register, an address or a number
     // In the case of a number, it means that we are in BIT,RES or SET
     // So we check the second argument
-    if (isOpReg8(tokens))
+    if (checkOp(tokens,{OP,R8}))
         reg = register8Bits.at(tokens[1].value);
-    else if (isOpBrReg16Br(tokens) and tokens[2].value == "HL")
+    else if (checkOp(tokens, {OP,LBR,R16,RBR}) and tokens[2].value == "HL")
         reg = 0x06;
-    else if (isOpNumReg8(tokens)){
+    else if (checkOp(tokens, {OP,NUM,COM,R8})){
         num = static_cast<uint8_t>(std::stoi(tokens[1].value)) << 3;
         reg = register8Bits.at(tokens[3].value);
-    } else if (isOpNumBrReg16Br(tokens) and tokens[3].value == "HL"){
+    } else if (checkOp(tokens, {OP,NUM,COM,LBR,R16,RBR}) and tokens[3].value == "HL"){
         num = static_cast<uint8_t>(std::stoi(tokens[1].value)) << 3;
         reg = 0x06;
     } else throw std::runtime_error("Unknown operation.");
@@ -113,33 +129,33 @@ std::vector<uint8_t> Assembler::handlerArithmeticOperation(std::vector<Token> to
     // ADD,ADC,SUB,SBC,AND,XOR,OR,CP
     if (arithmeticOpMap.find(operation) != arithmeticOpMap.end()){
         uint8_t baseAddress = arithmeticOpMap.at(operation);
-        if (isOpReg8Reg8(tokens))
+        if (checkOp(tokens, {OP,R8,COM,R8}))
             return {CAST(baseAddress + register8Bits.at(tokens[3].value))};
-        if (isOpReg8BrReg16Br(tokens) and tokens[4].value == "HL")
+        if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and tokens[4].value == "HL")
             return {CAST(baseAddress + 0x06)};
-        if (isOpReg8Number(tokens))
+        if (checkOp(tokens, {OP,R8,COM,NUM}))
             return {CAST(arithmeticOpMap.at(operation) + 0x46),
                     getByteFromString(tokens[3].value)};
     }
 
     // Specific case of ADD
     if (operation == "ADD") {
-        if (isOpReg16Reg16(tokens) and tokens[1].value == "HL")
+        if (checkOp(tokens, {OP,R16,COM,R16}) and tokens[1].value == "HL")
             return {CAST(0x09 + register16Bits.at(tokens[3].value))};
-        if (isOpReg8Number(tokens) and tokens[1].value == "A")
+        if (checkOp(tokens, {OP,R8,COM,NUM}) and tokens[1].value == "A")
             return {0xC6, getByteFromString(tokens[3].value)};
-        if (isOpReg16Number(tokens) and tokens[1].value == "SP")
+        if (checkOp(tokens, {OP,R16,COM,NUM}) and tokens[1].value == "SP")
             return {0xE8, getByteFromString(tokens[3].value)};
     }
 
     // INC,DEC
     if (arithmeticAltOpMap.find(operation) != arithmeticAltOpMap.end()){
         uint8_t baseAddress = arithmeticAltOpMap.at(operation);
-        if (isOpReg8(tokens))
+        if (checkOp(tokens, {OP,R8}))
             return {CAST(baseAddress + register8BitsAlt.at(tokens[1].value))};
-        if (isOpBrReg16Br(tokens) and tokens[2].value == "HL")
+        if (checkOp(tokens, {OP,LBR,R16,RBR}) and tokens[2].value == "HL")
             return {CAST(baseAddress + 0x30)};
-        if (isOpReg16(tokens)){
+        if (checkOp(tokens, {OP,R16})){
             return {CAST(arithmeticAlt16OpMap.at(operation) + register16Bits.at(tokens[1].value))};
         }
     }
@@ -150,31 +166,29 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
     std::string operation = tokens[0].value;
 
     if (operation == "LD"){
-        if (isOpReg16Number(tokens))
+        if (checkOp(tokens, {OP,R16,COM,NUM}))
             return {CAST(0x01 + register16Bits.at(tokens[1].value)),
                     getByteFromString(tokens[3].value),
                     getUpperByteFromString(tokens[3].value)};
 
-        if (isOpBrReg16BrReg8(tokens) and tokens[5].value == "A"){
+        if (checkOp(tokens, {OP,LBR,R16,RBR,COM,R8}) and tokens[5].value == "A"){
             if (tokens[2].value == "BC") return {0x02};
             if (tokens[2].value == "DE") return {0x12};
         }
-        if (isOpBrReg16PlusBrReg8(tokens) and tokens[2].value == "HL" and tokens[6].value == "A")
+        if (checkOp(tokens, {OP,LBR,R16,PLUS,RBR,COM,R8}) and tokens[2].value == "HL" and tokens[6].value == "A")
             return {0x22};
-        if (isOpBrReg16MinusBrReg8(tokens) and tokens[2].value == "HL" and tokens[6].value == "A")
+        if (checkOp(tokens, {OP,LBR,R16,MIN,RBR,COM,R8}) and tokens[2].value == "HL" and tokens[6].value == "A")
             return {0x32};
 
-        if (isOpReg8Number(tokens))
+        if (checkOp(tokens, {OP,R8,COM,NUM}))
             return {register8BitsLoad.at(tokens[1].value), getByteFromString(tokens[3].value)};
-        if (isOpBrReg16BrNumber(tokens))
+        if (checkOp(tokens, {OP,LBR,R16,RBR,COM,NUM}))
             return {0x36, getByteFromString(tokens[5].value)};
 
-        if (isOpReg8BrReg16Br(tokens) and tokens[1].value == "A"){
+        if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and tokens[1].value == "A"){
             if (tokens[4].value == "BC") return {0x0A};
             if (tokens[4].value == "DE") return {0x1A};
         }
-
-
     }
 
     throw std::runtime_error("Unknown operation.");
@@ -184,14 +198,6 @@ std::vector<uint8_t> Assembler::handlerJumpOperation(std::vector<Token> tokens) 
     throw std::runtime_error("Unknown operation.");
 }
 
-
-
-
-
-
-
-
-
 uint8_t Assembler::getByteFromString(const std::string& number) {
     return static_cast<uint8_t>(std::stoi(number));
 }
@@ -200,121 +206,10 @@ uint8_t Assembler::getUpperByteFromString(const std::string &number) {
     return static_cast<uint8_t>(std::stoi(number) >> 8);
 }
 
-
-
-
-
-bool Assembler::isOpReg8(std::vector<Token> tokens) {
-    if (tokens.size() != 2) return false;
-    return tokens[1].type == TokenType::REGISTER8;
+bool Assembler::checkOp(std::vector<Token> tokens, std::vector<TokenType> expected) {
+    if (tokens.size() != expected.size()) return false;
+    for (int i = 0; i < tokens.size(); i++){
+        if (tokens[i].type != expected[i]) return false;
+    }
+    return true;
 }
-
-bool Assembler::isOpReg16(std::vector<Token> tokens) {
-    if (tokens.size() != 2) return false;
-    return tokens[1].type == TokenType::REGISTER16;
-}
-
-bool Assembler::isOpBrReg16Br(std::vector<Token> tokens) {
-    if (tokens.size() != 4) return false;
-    return tokens[1].type == TokenType::LEFT_BRACKET and
-           tokens[2].type == TokenType::REGISTER16 and
-           tokens[3].type == TokenType::RIGHT_BRACKET;
-}
-
-bool Assembler::isOpNumReg8(std::vector<Token> tokens) {
-    if (tokens.size() != 4) return false;
-    return tokens[1].type == TokenType::NUMBER and
-           tokens[2].type == TokenType::COMMA and
-           tokens[3].type == TokenType::REGISTER8;
-}
-
-bool Assembler::isOpNumBrReg16Br(std::vector<Token> tokens) {
-    if (tokens.size() != 6) return false;
-    return tokens[1].type == TokenType::NUMBER and
-           tokens[2].type == TokenType::COMMA and
-           tokens[3].type == TokenType::LEFT_BRACKET and
-           tokens[4].type == TokenType::REGISTER16 and
-           tokens[5].type == TokenType::RIGHT_BRACKET;
-}
-
-bool Assembler::isOpReg8Reg8(std::vector<Token> tokens) {
-    if (tokens.size() != 4) return false;
-    return tokens[1].type == TokenType::REGISTER8 and
-           tokens[2].type == TokenType::COMMA and
-           tokens[3].type == TokenType::REGISTER8;
-}
-
-bool Assembler::isOpReg8BrReg16Br(std::vector<Token> tokens) {
-    if (tokens.size() != 6) return false;
-    return tokens[1].type == TokenType::REGISTER8 and
-           tokens[2].type == TokenType::COMMA and
-           tokens[3].type == TokenType::LEFT_BRACKET and
-           tokens[4].type == TokenType::REGISTER16 and
-           tokens[5].type == TokenType::RIGHT_BRACKET;
-}
-
-bool Assembler::isOpReg8Number(std::vector<Token> tokens) {
-    if (tokens.size() != 4) return false;
-    return tokens[1].type == TokenType::REGISTER8 and
-           tokens[2].type == TokenType::COMMA and
-           tokens[3].type == TokenType::NUMBER;
-}
-
-bool Assembler::isOpReg16Reg16(std::vector<Token> tokens) {
-    if (tokens.size() != 4) return false;
-    return tokens[1].type == TokenType::REGISTER16 and
-           tokens[2].type == TokenType::COMMA and
-           tokens[3].type == TokenType::REGISTER16;
-}
-
-bool Assembler::isOpReg16Number(std::vector<Token> tokens) {
-    if (tokens.size() != 4) return false;
-    return tokens[1].type == TokenType::REGISTER16 and
-           tokens[2].type == TokenType::COMMA and
-           tokens[3].type == TokenType::NUMBER;
-}
-
-bool Assembler::isOpBrReg16BrReg8(std::vector<Token> tokens) {
-    if (tokens.size() != 6) return false;
-    return tokens[1].type == TokenType::LEFT_BRACKET and
-           tokens[2].type == TokenType::REGISTER16 and
-           tokens[3].type == TokenType::RIGHT_BRACKET and
-           tokens[4].type == TokenType::COMMA and
-           tokens[5].type == TokenType::REGISTER8;
-}
-
-bool Assembler::isOpBrReg16PlusBrReg8(std::vector<Token> tokens) {
-    if (tokens.size() != 7) return false;
-    return tokens[1].type == TokenType::LEFT_BRACKET and
-           tokens[2].type == TokenType::REGISTER16 and
-           tokens[3].type == TokenType::PLUS and
-           tokens[4].type == TokenType::RIGHT_BRACKET and
-           tokens[5].type == TokenType::COMMA and
-           tokens[6].type == TokenType::REGISTER8;
-}
-
-bool Assembler::isOpBrReg16MinusBrReg8(std::vector<Token> tokens) {
-    if (tokens.size() != 7) return false;
-    return tokens[1].type == TokenType::LEFT_BRACKET and
-           tokens[2].type == TokenType::REGISTER16 and
-           tokens[3].type == TokenType::MINUS and
-           tokens[4].type == TokenType::RIGHT_BRACKET and
-           tokens[5].type == TokenType::COMMA and
-           tokens[6].type == TokenType::REGISTER8;
-}
-
-bool Assembler::isOpBrReg16BrNumber(std::vector<Token> tokens) {
-    if (tokens.size() != 6) return false;
-    return tokens[1].type == TokenType::LEFT_BRACKET and
-           tokens[2].type == TokenType::REGISTER16 and
-           tokens[3].type == TokenType::RIGHT_BRACKET and
-           tokens[4].type == TokenType::COMMA and
-           tokens[5].type == TokenType::NUMBER;
-}
-
-
-
-
-
-
-

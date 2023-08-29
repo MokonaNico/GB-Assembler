@@ -25,24 +25,10 @@ private:
     std::vector<uint8_t> handlerJumpOperation(std::vector<Token> tokens);
     std::unordered_set<std::string> jumpOpList = {"JP","JR","RET","CALL","RST","RETI"};
 
-
     static uint8_t getByteFromString(const std::string& number);
     static uint8_t getUpperByteFromString(const std::string& number);
 
-    static bool isOpReg8(std::vector<Token> tokens);
-    static bool isOpReg16(std::vector<Token> tokens);
-    static bool isOpBrReg16Br(std::vector<Token> tokens);
-    static bool isOpNumReg8(std::vector<Token> tokens);
-    static bool isOpNumBrReg16Br(std::vector<Token> tokens);
-    static bool isOpReg8Reg8(std::vector<Token> tokens);
-    static bool isOpReg8BrReg16Br(std::vector<Token> tokens);
-    static bool isOpReg8Number(std::vector<Token> tokens);
-    static bool isOpReg16Reg16(std::vector<Token> tokens);
-    static bool isOpReg16Number(std::vector<Token> tokens);
-    static bool isOpBrReg16BrReg8(std::vector<Token> tokens);
-    static bool isOpBrReg16PlusBrReg8(std::vector<Token> tokens);
-    static bool isOpBrReg16MinusBrReg8(std::vector<Token> tokens);
-    static bool isOpBrReg16BrNumber(std::vector<Token> tokens);
+    static bool checkOp(std::vector<Token> tokens, std::vector<TokenType> expected);
 
     std::map<std::string, uint8_t> arithmeticOpMap = {
             {"ADD",  0x80},
