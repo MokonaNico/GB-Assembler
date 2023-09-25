@@ -26,12 +26,6 @@
 #define PLUS TokenType::PLUS
 
 std::vector<uint8_t> Assembler::generateBinaryInstruction(std::vector<Token> tokens) {
-    // TODO : Delete this print
-    for (const Token& token : tokens) {
-        std::cout << "<" << Lexer::tokenTypeToString(token.type) << "," << token.value << "> ";
-    }
-    std::cout << std::endl;
-
     if (tokens[0].type == TokenType::OPERATION) return handlerOperation(tokens);
     throw std::runtime_error("Unknown operation.");
 }

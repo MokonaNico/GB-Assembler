@@ -55,6 +55,13 @@ int main(int argc, char**argv){
         }
 
         if (tokens.empty()) continue;
+
+        // TODO : Delete this print
+        for (const Token& tok : tokens) {
+            std::cout << "<" << Lexer::tokenTypeToString(tok.type) << "," << tok.value << "> ";
+        }
+        std::cout << std::endl;
+
         std::vector<uint8_t> bin = assembler.generateBinaryInstruction(tokens);
 
         for(uint8_t value : bin){
