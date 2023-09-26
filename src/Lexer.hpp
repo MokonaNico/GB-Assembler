@@ -14,7 +14,6 @@ enum class TokenType {
     OPERATION,
     REGISTER16,
     REGISTER8,
-    ADDRESS,
     CONDITION,
     NUMBER,
     // Label tokens

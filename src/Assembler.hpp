@@ -27,8 +27,6 @@ private:
 
     static uint8_t getByteFromString(const std::string& number);
     static uint8_t getUpperByteFromString(const std::string& number);
-    static uint8_t getByteFromAddressString(const std::string& address);
-    static uint8_t getUpperByteFromAddressString(const std::string& address);
 
     static bool checkOp(std::vector<Token> tokens, std::vector<TokenType> expected);
 
@@ -113,14 +111,14 @@ private:
             {"C",  0x18}
     };
     std::map<std::string, uint8_t> rstAddBits = {
-            {"00", 0x00},
-            {"08", 0x08},
-            {"10", 0x10},
-            {"18", 0x18},
-            {"20", 0x20},
-            {"28", 0x28},
-            {"30", 0x30},
-            {"38", 0x38}
+            {"0", 0x00},
+            {"8", 0x08},
+            {"16", 0x10},
+            {"24", 0x18},
+            {"32", 0x20},
+            {"40", 0x28},
+            {"48", 0x30},
+            {"56", 0x38}
     };
 };
 

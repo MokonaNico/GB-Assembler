@@ -98,18 +98,22 @@ Token Lexer::getNextToken() {
         return {TokenType::COMMAND, command};
     }
 
-    // If it's a $, it means that it's an address. So we skip the $ and return a token with the address
-    //  is always write with hex
+    // If it's a $, then it's a number write-in hexadecimal. We already convert this number
+    // in base 10.
     if (currentChar == '$'){
-        // address
-        std::string address;
+        // parse the hex number
+        std::string hexNumber;
         currentChar = sourceCode[position];
         while(std::isxdigit(currentChar)){
-            address += currentChar;
+            hexNumber += currentChar;
             position++;
             currentChar = sourceCode[position];
         }
-        return {TokenType::ADDRESS, address};
+
+        // transform the hex number into a base10 number
+        int decimalValue = std::stoi(hexNumber, nullptr, 16);
+
+        return {TokenType::NUMBER, std::to_string(decimalValue)};
     }
 
     // Token for some special character
@@ -136,7 +140,6 @@ std::string Lexer::tokenTypeToString(TokenType type) {
         case TokenType::OPERATION: return "OPERATION";
         case TokenType::REGISTER16: return "REGISTER16";
         case TokenType::REGISTER8: return "REGISTER8";
-        case TokenType::ADDRESS: return "ADDRESS";
         case TokenType::CONDITION: return "CONDITION";
         case TokenType::NUMBER: return "NUMBER";
         case TokenType::LABEL: return "LABEL";
