@@ -9,6 +9,21 @@
 #include <string>
 #include <unordered_set>
 
+#define OP TokenType::OPERATION
+#define R16 TokenType::REGISTER16
+#define R8 TokenType::REGISTER8
+#define COND TokenType::CONDITION
+#define NUM TokenType::NUMBER
+#define LAB TokenType::LABEL
+#define CMD TokenType::COMMAND
+#define ARG TokenType::ARGUMENT
+#define COM TokenType::COMMA
+#define RBR TokenType::RIGHT_BRACKET
+#define LBR TokenType::LEFT_BRACKET
+#define COL TokenType::COLON
+#define MIN TokenType::MINUS
+#define PLU TokenType::PLUS
+
 enum class TokenType {
     // Operation tokens
     OPERATION,
@@ -36,6 +51,10 @@ enum class TokenType {
 struct Token {
     TokenType type;
     std::string value;
+
+    bool operator==(const Token& other) const {
+        return (type == other.type) && (value == other.value);
+    }
 };
 
 class Lexer {
@@ -49,7 +68,7 @@ private:
     size_t position;
     bool lastTokenIsJump = false;
     std::unordered_set<std::string> operationList = {"LD","LDI","LDD","LDH","PUSH","POP",
-                                                     "ADD","ADC","SUB","SBC","AND",
+                                                     "ADD","ADC","SUB","SBC","AND","LDHL",
                                                      "XOR","OR","CP","INC","DEC","DAA",
                                                      "CPL","RLCA","RLA","RRCA","RRA",
                                                      "RLC","RL","RRC","RR","SLA","SWAP",
@@ -57,7 +76,7 @@ private:
                                                      "SCF","NOP","HALT","STOP","DI","EI",
                                                      "JP","JR","CALL","RET","RETI","RST"};
     std::unordered_set<std::string> jumpList = {"JP", "JR", "CALL", "RET"};
-    std::unordered_set<std::string> register16List = {"AF","BC","DE","HL","SP","PC"};
+    std::unordered_set<std::string> register16List = {"AF","BC","DE","HL","SP","PC","HLI","HLD"};
     std::unordered_set<std::string> register8List = {"A","B","C","D","E","H","L"};
     std::unordered_set<std::string> conditionList = {"NZ","Z","NC","C"};
 };

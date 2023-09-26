@@ -9,7 +9,7 @@
 #include "Lexer.hpp"
 #include "Assembler.hpp"
 
-int main(int argc, char**argv){
+int main(int argc, char**argv) {
     CommandLineParser parser;
     parser.setProgramName("GB-Assembler");
     parser.addFlag("--input", "-i", std::string("input.asm"),
@@ -61,6 +61,8 @@ int main(int argc, char**argv){
             std::cout << "<" << Lexer::tokenTypeToString(tok.type) << "," << tok.value << "> ";
         }
         std::cout << std::endl;
+
+        //continue;
 
         std::vector<uint8_t> bin = assembler.generateBinaryInstruction(tokens);
 

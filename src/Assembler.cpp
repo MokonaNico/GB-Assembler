@@ -8,22 +8,6 @@
 
 #define CAST(var) static_cast<uint8_t>(var)
 
-// Some definition to short all the checkOp call
-#define OP TokenType::OPERATION
-#define R16 TokenType::REGISTER16
-#define R8 TokenType::REGISTER8
-#define COND TokenType::CONDITION
-#define NUM TokenType::NUMBER
-#define LAB TokenType::LABEL
-#define CMD TokenType::COMMAND
-#define ARG TokenType::ARGUMENT
-#define COM TokenType::COMMA
-#define RBR TokenType::RIGHT_BRACKET
-#define LBR TokenType::LEFT_BRACKET
-#define COL TokenType::COLON
-#define MIN TokenType::MINUS
-#define PLUS TokenType::PLUS
-
 std::vector<uint8_t> Assembler::generateBinaryInstruction(std::vector<Token> tokens) {
     if (tokens[0].type == TokenType::OPERATION) return handlerOperation(tokens);
     throw std::runtime_error("Unknown operation.");
@@ -117,7 +101,6 @@ std::vector<uint8_t> Assembler::handlerPrefixedOperation(std::vector<Token> toke
  * @return vector of bytes
  */
 std::vector<uint8_t> Assembler::handlerArithmeticOperation(std::vector<Token> tokens) {
-    // TODO : Support arithmetic instruction without register A (ADD A,B -> ADD B)
     std::string operation = tokens[0].value;
 
     // ADD,ADC,SUB,SBC,AND,XOR,OR,CP
@@ -128,7 +111,7 @@ std::vector<uint8_t> Assembler::handlerArithmeticOperation(std::vector<Token> to
         if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and tokens[4].value == "HL")
             return {CAST(baseAddress + 0x06)};
         if (checkOp(tokens, {OP,R8,COM,NUM}))
-            return {CAST(arithmeticOpMap.at(operation) + 0x46), getByteFromString(tokens[3].value)};
+            return {CAST(baseAddress + 0x46), getByteFromString(tokens[3].value)};
     }
 
     // Specific case of ADD
@@ -165,7 +148,7 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
             uint8_t midBits = register8Bits.at(tokens[1].value) << 3;
             return {CAST(0x40 + midBits + lowerBits)};
         }
-        if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and tokens[4].value == "HL"){
+        if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and (tokens[4].value == "HL" or tokens[4].value == "HLI")){
             uint8_t midBits = register8Bits.at(tokens[1].value) << 3;
             return {CAST(0x46 + midBits)};
         }
@@ -185,9 +168,13 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
             if (tokens[2].value == "BC") return {0x02};
             if (tokens[2].value == "DE") return {0x12};
         }
-        if (checkOp(tokens, {OP,LBR,R16,PLUS,RBR,COM,R8}) and tokens[2].value == "HL" and tokens[6].value == "A")
+        if (checkOp(tokens, {OP,LBR,R16,PLU,RBR,COM,R8}) and tokens[2].value == "HL" and tokens[6].value == "A")
+            return {0x22};
+        if (checkOp(tokens, {OP,LBR,R16,RBR,COM,R8}) and tokens[2].value == "HLI" and tokens[5].value == "A")
             return {0x22};
         if (checkOp(tokens, {OP,LBR,R16,MIN,RBR,COM,R8}) and tokens[2].value == "HL" and tokens[6].value == "A")
+            return {0x32};
+        if (checkOp(tokens, {OP,LBR,R16,RBR,COM,R8}) and tokens[2].value == "HLD" and tokens[5].value == "A")
             return {0x32};
 
         // 0x06 0x16 0x26 0x36
@@ -201,10 +188,13 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
             if (tokens[4].value == "BC") return {0x0A};
             if (tokens[4].value == "DE") return {0x1A};
         }
-        if (checkOp(tokens, {OP,R8,COM,LBR,R16,PLUS,RBR}) and tokens[1].value == "A" and tokens[4].value == "HL")
+        if (checkOp(tokens, {OP,R8,COM,LBR,R16,PLU,RBR}) and tokens[1].value == "A" and tokens[4].value == "HL")
             return {0x2A};
         if (checkOp(tokens, {OP,R8,COM,LBR,R16,MIN,RBR}) and tokens[1].value == "A" and tokens[4].value == "HL")
             return {0x3A};
+        if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and tokens[1].value == "A" and tokens[4].value == "HLD")
+            return {0x3A};
+
 
         // 0x08
         if (checkOp(tokens, {OP,LBR,NUM,RBR,COM,R16}) and tokens[5].value == "SP")
@@ -215,11 +205,17 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
         // 0xE2 0xF2
         if (checkOp(tokens, {OP,LBR,R8,RBR,COM,R8}) and tokens[2].value == "C" and tokens[5].value == "A")
             return {0xE2};
+        if (checkOp(tokens, {OP,LBR,NUM,PLU,R8,RBR,COM,R8}) and
+           tokens[2].value == "65280" and tokens[4].value == "C" and tokens[7].value == "A")
+            return {0xE2};
         if (checkOp(tokens, {OP,R8,COM,LBR,R8,RBR}) and tokens[1].value == "A" and tokens[4].value == "C")
+            return {0xF2};
+        if (checkOp(tokens, {OP,R8,COM,LBR,NUM,PLU,R8,RBR}) and
+            tokens[1].value == "A" and tokens[4].value == "65280" and tokens[6].value == "C")
             return {0xF2};
 
         // 0xF8
-        if (checkOp(tokens, {OP,R16,COM,R16,PLUS,NUM}) and tokens[1].value == "HL" and tokens[3].value == "SP")
+        if (checkOp(tokens, {OP,R16,COM,R16,PLU,NUM}) and tokens[1].value == "HL" and tokens[3].value == "SP")
             return {0xF8, getByteFromString(tokens[5].value)};
 
         // 0xF9
@@ -237,6 +233,14 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
             return {0xFA,
                     getUpperByteFromString(tokens[4].value),
                     getByteFromString(tokens[4].value)};
+        //0xE0
+        if (checkOp(tokens, {OP,LBR,NUM,PLU,NUM,RBR,COM,R8}) and
+            tokens[2].value == "65280" and tokens[7].value == "A")
+            return {0xE0, getByteFromString(tokens[4].value)};
+        //0xF0
+        if (checkOp(tokens, {OP,R8,COM,LBR,NUM,PLU,NUM,RBR}) and
+            tokens[1].value == "A" and tokens[4].value == "65280")
+            return {0xF0, getByteFromString(tokens[6].value)};
     }
 
     if (operation == "LDH"){
@@ -246,6 +250,27 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
         //0xF0
         if (checkOp(tokens, {OP,R8,COM,LBR,NUM,RBR}) and tokens[1].value == "A")
             return {0xF0, getByteFromString(tokens[4].value)};
+    }
+
+    if (operation == "LDI"){
+        if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and tokens[4].value == "HL"){
+            uint8_t midBits = register8Bits.at(tokens[1].value) << 3;
+            return {CAST(0x46 + midBits)};
+        }
+        if (checkOp(tokens, {OP,LBR,R16,RBR,COM,R8}) and tokens[2].value == "HL" and tokens[5].value == "A")
+            return {0x22};
+    }
+
+    if (operation == "LDD"){
+        if (checkOp(tokens, {OP,R8,COM,LBR,R16,RBR}) and tokens[1].value == "A" and tokens[4].value == "HL")
+            return {0x3A};
+        if (checkOp(tokens, {OP,LBR,R16,RBR,COM,R8}) and tokens[2].value == "HL" and tokens[5].value == "A")
+            return {0x3A};
+    }
+
+    if (operation == "LDHL"){
+        if (checkOp(tokens, {OP,R16,COM,NUM}) and tokens[1].value == "SP")
+            return {0xF8, getByteFromString(tokens[3].value)};
     }
 
     if (operation == "POP" and checkOp(tokens,{OP,R16}))

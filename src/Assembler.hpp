@@ -21,7 +21,7 @@ private:
     std::unordered_set<std::string> arithmeticOpList = {"ADD","ADC","SUB","SBC","AND","XOR","OR",
                                                         "CP","INC","DEC"};
     std::vector<uint8_t> handlerLoadOperation(std::vector<Token> tokens);
-    std::unordered_set<std::string> loadOpList = {"LD","LDH","POP","PUSH"};
+    std::unordered_set<std::string> loadOpList = {"LD","LDH","POP","PUSH","LDI","LDD","LDHL"};
     std::vector<uint8_t> handlerJumpOperation(std::vector<Token> tokens);
     std::unordered_set<std::string> jumpOpList = {"JP","JR","RET","CALL","RST","RETI"};
 
