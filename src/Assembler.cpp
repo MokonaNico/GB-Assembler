@@ -199,8 +199,8 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
         // 0x08
         if (checkOp(tokens, {OP,LBR,NUM,RBR,COM,R16}) and tokens[5].value == "SP")
             return {0x08,
-                    getUpperByteFromString(tokens[2].value),
-                    getByteFromString(tokens[2].value)};
+                    getByteFromString(tokens[2].value),
+                    getUpperByteFromString(tokens[2].value)};
 
         // 0xE2 0xF2
         if (checkOp(tokens, {OP,LBR,R8,RBR,COM,R8}) and tokens[2].value == "C" and tokens[5].value == "A")
@@ -225,14 +225,14 @@ std::vector<uint8_t> Assembler::handlerLoadOperation(std::vector<Token> tokens) 
         // 0xEA
         if (checkOp(tokens, {OP,LBR,NUM,RBR,COM,R8}) and tokens[5].value == "A")
             return {0xEA,
-                    getUpperByteFromString(tokens[2].value),
-                    getByteFromString(tokens[2].value)};
+                    getByteFromString(tokens[2].value),
+                    getUpperByteFromString(tokens[2].value)};
 
         // 0xFA
         if (checkOp(tokens, {OP,R8,COM,LBR,NUM,RBR}) and tokens[1].value == "A")
             return {0xFA,
-                    getUpperByteFromString(tokens[4].value),
-                    getByteFromString(tokens[4].value)};
+                    getByteFromString(tokens[4].value),
+                    getUpperByteFromString(tokens[4].value)};
         //0xE0
         if (checkOp(tokens, {OP,LBR,NUM,PLU,NUM,RBR,COM,R8}) and
             tokens[2].value == "65280" and tokens[7].value == "A")
@@ -295,11 +295,11 @@ std::vector<uint8_t> Assembler::handlerJumpOperation(std::vector<Token> tokens) 
 
     if (operation == "JP"){
         if (checkOp(tokens, {OP,NUM}))
-            return {0xC3, getUpperByteFromString(tokens[1].value),
-                          getByteFromString(tokens[1].value)};
+            return {0xC3, getByteFromString(tokens[1].value),
+                          getUpperByteFromString(tokens[1].value)};
         if (checkOp(tokens, {OP,COND,COM,NUM})) {
-            uint8_t up_add = getUpperByteFromString(tokens[3].value);
-            uint8_t low_add = getByteFromString(tokens[3].value);
+            uint8_t up_add = getByteFromString(tokens[3].value);
+            uint8_t low_add = getUpperByteFromString(tokens[3].value);
             return {CAST(0xC2 + conditionBits.at(tokens[1].value)), up_add, low_add};
         }
         if (checkOp(tokens, {OP, R16}))
@@ -317,11 +317,11 @@ std::vector<uint8_t> Assembler::handlerJumpOperation(std::vector<Token> tokens) 
 
     if (operation == "CALL"){
         if (checkOp(tokens, {OP,NUM}))
-            return {0xCD, getUpperByteFromString(tokens[1].value),
-                          getByteFromString(tokens[1].value)};
+            return {0xCD, getByteFromString(tokens[1].value),
+                          getUpperByteFromString(tokens[1].value)};
         if (checkOp(tokens, {OP,COND,COM,NUM})) {
-            uint8_t up_add = getUpperByteFromString(tokens[3].value);
-            uint8_t low_add = getByteFromString(tokens[3].value);
+            uint8_t up_add = getByteFromString(tokens[3].value);
+            uint8_t low_add = getUpperByteFromString(tokens[3].value);
             return {CAST(0xC4 + conditionBits.at(tokens[1].value)), up_add, low_add};
         }
     }
