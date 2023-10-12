@@ -5,9 +5,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "CommandLineParser.hpp"
-#include "Lexer.hpp"
-#include "Assembler.hpp"
+#include "CommandLineParser.h"
+#include "Lexer.h"
+#include "Assembler.h"
 
 int main(int argc, char**argv) {
     CommandLineParser parser;

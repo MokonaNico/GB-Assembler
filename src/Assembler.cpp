@@ -4,7 +4,7 @@
 
 #include <iostream>
 #include <sstream>
-#include "Assembler.hpp"
+#include "Assembler.h"
 
 #define CAST(var) static_cast<uint8_t>(var)
 

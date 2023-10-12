@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include "Lexer.hpp"
+#include "Lexer.h"
 
 /**
  * Constructor of the Lexer class

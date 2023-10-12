@@ -2,8 +2,8 @@
 // Created by MokonaNico 20/08/2023.
 //
 
-#ifndef GB_ASSEMBLER_LEXER_HPP
-#define GB_ASSEMBLER_LEXER_HPP
+#ifndef GB_ASSEMBLER_LEXER_H
+#define GB_ASSEMBLER_LEXER_H
 
 #include <vector>
 #include <string>
@@ -81,4 +81,4 @@ private:
     std::unordered_set<std::string> conditionList = {"NZ","Z","NC","C"};
 };
 
-#endif //GB_ASSEMBLER_LEXER_HPP
+#endif //GB_ASSEMBLER_LEXER_H

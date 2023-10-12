@@ -2,7 +2,7 @@
 // Created by MokonaNico 18/08/2023.
 //
 
-#include "CommandLineParser.hpp"
+#include "CommandLineParser.h"
 #include <iostream>
 #include <utility>
 

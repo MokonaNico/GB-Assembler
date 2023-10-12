@@ -2,14 +2,14 @@
 // Created by MokonaNico on 24/08/2023.
 //
 
-#ifndef GB_ASSEMBLER_ASSEMBLER_HPP
-#define GB_ASSEMBLER_ASSEMBLER_HPP
+#ifndef GB_ASSEMBLER_ASSEMBLER_H
+#define GB_ASSEMBLER_ASSEMBLER_H
 
 
 #include <cstdint>
 #include <vector>
 #include <map>
-#include "Lexer.hpp"
+#include "Lexer.h"
 
 class Assembler {
 public:
@@ -122,4 +122,4 @@ private:
     };
 };
 
-#endif //GB_ASSEMBLER_ASSEMBLER_HPP
+#endif //GB_ASSEMBLER_ASSEMBLER_H

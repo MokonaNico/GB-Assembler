@@ -1,7 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include "Tests.h"
-#include "../src/Assembler.hpp"
+#include "../src/Assembler.h"
 #include "GeneratedTests.h"
 
 int main(int argc, char**argv){

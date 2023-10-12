@@ -7,11 +7,11 @@ enable_testing()
 
 set(ASSEMBLER_SOURCE_FILES
         src/CommandLineParser.cpp
-        src/CommandLineParser.hpp
+        src/CommandLineParser.h
         src/Lexer.cpp
-        src/Lexer.hpp
+        src/Lexer.h
         src/Assembler.cpp
-        src/Assembler.hpp
+        src/Assembler.h
 )
 
 add_executable(GB-Assembler src/main.cpp ${ASSEMBLER_SOURCE_FILES})

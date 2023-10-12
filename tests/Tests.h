@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <cstdint>
-#include "../src/Lexer.hpp"
+#include "../src/Lexer.h"
 
 void testAllBasicOperation();
 
