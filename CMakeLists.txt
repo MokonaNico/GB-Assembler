@@ -19,6 +19,7 @@ add_executable(GB-Assembler src/main.cpp ${ASSEMBLER_SOURCE_FILES})
 set(ASSEMBLER_TEST_FILES
         tests/Tests.cpp
         tests/Tests.h
+        tests/GeneratedTests.h
 )
 
 add_executable(GB-Tests ${ASSEMBLER_TEST_FILES} ${ASSEMBLER_SOURCE_FILES} )

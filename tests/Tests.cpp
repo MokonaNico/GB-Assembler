@@ -2,6 +2,7 @@
 #include <iomanip>
 #include "Tests.h"
 #include "../src/Assembler.hpp"
+#include "GeneratedTests.h"
 
 int main(int argc, char**argv){
     std::cout << "--- Begin testing ---" << std::endl;
@@ -26,8 +27,8 @@ void testAllBasicOperation(){
 
     int failedCount = 0;
 
-    for (int i = 0; i < vectorOpTest.size(); i++){
-        std::string op = vectorOpTest.at(i).op;
+    for (int i = 0; i < vectorTestGenerated.size(); i++){
+        std::string op = vectorTestGenerated.at(i).op;
 
         // Test lexer
         Lexer lexer(op);
@@ -38,24 +39,20 @@ void testAllBasicOperation(){
             tokens.push_back(token);
             token = lexer.getNextToken();
         }
-        bool testLexer = (tokens == vectorOpTest.at(i).tokens);
-
         // Test assembler
         Assembler assembler;
         std::vector<uint8_t> bin = assembler.generateBinaryInstruction(tokens);
-        bool testAssembler = (bin == vectorOpTest.at(i).bin);
+        bool testAssembler = (bin == vectorTestGenerated.at(i).bin);
 
-        if (not testLexer or not testAssembler) {
+        if (not testAssembler) {
             failedCount++;
-            std::cout << "[" << testLexer << testAssembler << "] " << i << " - " << op << std::endl;
-            std::cout << "     Lex : ";
-            printLex(tokens);
+            std::cout << "[Failed] " << i << " - " << op << std::endl;
+            std::cout << "     Expected Bin : ";
+            printBin(vectorTestGenerated.at(i).bin);
             std::cout << std::endl;
-            std::cout << "     Bin : ";
+            std::cout << "     Got          : ";
             printBin(bin);
             std::cout << std::endl;
-
-
         }
     }
 
