@@ -23,6 +23,7 @@ def make_string(opcode: dict, mnemonic: dict, operands: list) -> [str, str]:
     """
     create a string that represent a command
 
+    :param opcode:
     :param mnemonic: A dict with the name of the op code
     :param operands: A list with all the operands
     :return: a string of the command
@@ -35,6 +36,7 @@ def make_string(opcode: dict, mnemonic: dict, operands: list) -> [str, str]:
     op: dict
     for op in operands:
         if op_string == "STOP":
+            bin_list.append("0x00")
             continue
         name: str = str(op["name"])
         immediate: dict = op["immediate"]
@@ -104,3 +106,5 @@ output += "#endif //GB_ASSEMBLER_GENERATEDTESTS_H"
 with open("tests/GeneratedTests.h", "w") as file:
     # Write the string to the file
     file.write(output)
+
+print("File GeneratedTests.h done !")

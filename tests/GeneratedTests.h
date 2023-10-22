@@ -70,7 +70,7 @@ std::vector<OpTest> vectorTestGenerated = {
     },
     {
         "STOP ",
-        {0x10}
+        {0x10, 0x00}
     },
     {
         "LD DE, $ABCD",
