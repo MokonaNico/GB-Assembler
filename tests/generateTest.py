@@ -16,7 +16,7 @@ def get_number(token: str):
     elif token == "a16":
         return "$ABCD", "0xCD", "0xAB"
     elif token == "e8":
-        return "-27", "0xF9"
+        return "-27", "0xE5"
 
 
 def make_string(opcode: dict, mnemonic: dict, operands: list) -> [str, str]:

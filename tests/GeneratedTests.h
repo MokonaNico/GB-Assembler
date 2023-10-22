@@ -102,7 +102,7 @@ std::vector<OpTest> vectorTestGenerated = {
     },
     {
         "JR -27",
-        {0x18, 0xF9}
+        {0x18, 0xE5}
     },
     {
         "ADD HL, DE",
@@ -134,7 +134,7 @@ std::vector<OpTest> vectorTestGenerated = {
     },
     {
         "JR NZ, -27",
-        {0x20, 0xF9}
+        {0x20, 0xE5}
     },
     {
         "LD HL, $ABCD",
@@ -166,7 +166,7 @@ std::vector<OpTest> vectorTestGenerated = {
     },
     {
         "JR Z, -27",
-        {0x28, 0xF9}
+        {0x28, 0xE5}
     },
     {
         "ADD HL, HL",
@@ -198,7 +198,7 @@ std::vector<OpTest> vectorTestGenerated = {
     },
     {
         "JR NC, -27",
-        {0x30, 0xF9}
+        {0x30, 0xE5}
     },
     {
         "LD SP, $ABCD",
@@ -230,7 +230,7 @@ std::vector<OpTest> vectorTestGenerated = {
     },
     {
         "JR C, -27",
-        {0x38, 0xF9}
+        {0x38, 0xE5}
     },
     {
         "ADD HL, SP",
@@ -910,7 +910,7 @@ std::vector<OpTest> vectorTestGenerated = {
     },
     {
         "ADD SP, -27",
-        {0xE8, 0xF9}
+        {0xE8, 0xE5}
     },
     {
         "JP HL",
@@ -958,7 +958,7 @@ std::vector<OpTest> vectorTestGenerated = {
     },
     {
         "LD HL, SP + -27",
-        {0xF8, 0xF9}
+        {0xF8, 0xE5}
     },
     {
         "LD SP, HL",
